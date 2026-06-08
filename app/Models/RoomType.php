@@ -12,5 +12,17 @@ class RoomType extends Model
     protected $fillable = [
         'title',
         'description',
+          'price',
+        'details',
     ];
+     public function images()
+    {
+        return $this->hasMany(RoomtypeImage::class)->orderBy('sort_order');
+    }
+
+    // First image as cover
+    public function coverImage()
+    {
+        return $this->hasOne(RoomtypeImage::class)->orderBy('sort_order');
+    }
 }

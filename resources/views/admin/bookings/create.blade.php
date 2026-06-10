@@ -62,8 +62,9 @@
 
         <div class="field-group">
             <label class="field-label" for="room_id">Room (optional)</label>
+            <div id="availability-status" style="margin-bottom:0.75rem;font-size:0.9rem;display:none;padding:0.75rem;border-radius:4px;" class="alert-info"></div>
             <select id="room_id" name="room_id" class="field-input @error('room_id') is-invalid @enderror">
-                <option value="">No room assigned yet</option>
+                <option value="">Select available room</option>
                 @foreach($availableRooms as $room)
                     <option value="{{ $room->id }}" {{ old('room_id') == $room->id ? 'selected' : '' }}>
                         {{ $room->room_number }} ({{ $room->roomType->title ?? 'No type' }})
@@ -133,4 +134,98 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const roomTypeSelect = document.getElementById('room_type_id');
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const roomSelect = document.getElementById('room_id');
+    const statusDiv = document.getElementById('availability-status');
+
+    function checkAvailability() {
+        const startDate = startDateInput.value;
+        const endDate = endDateInput.value;
+        const roomTypeId = roomTypeSelect.value;
+
+        if (!startDate || !endDate || !roomTypeId) {
+            statusDiv.style.display = 'none';
+            return;
+        }
+
+        // Show loading status
+        statusDiv.style.display = 'block';
+        statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking availability...';
+        statusDiv.className = 'alert-info';
+
+        fetch('{{ route("bookings.checkAvailability") }}?start_date=' + startDate + '&end_date=' + endDate + '&room_type_id=' + roomTypeId)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.count > 0) {
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> <strong>' + data.count + '</strong> room(s) available for selected dates';
+                        statusDiv.className = 'alert-success';
+                        // Update room options
+                        updateRoomOptions(data.rooms);
+                    } else {
+                        statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> No rooms available for these dates';
+                        statusDiv.className = 'alert-warning';
+                        roomSelect.innerHTML = '<option value="">No rooms available</option>';
+                    }
+                } else {
+                    statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error checking availability';
+                    statusDiv.className = 'alert-danger';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: ' + error.message;
+                statusDiv.className = 'alert-danger';
+                console.error('Availability check error:', error);
+            });
+    }
+
+    function updateRoomOptions(rooms) {
+        const currentSelection = roomSelect.value;
+        roomSelect.innerHTML = '<option value="">Select available room</option>';
+        
+        rooms.forEach(room => {
+            const option = document.createElement('option');
+            option.value = room.id;
+            option.textContent = 'Room ' + room.room_number;
+            if (currentSelection == room.id) option.selected = true;
+            roomSelect.appendChild(option);
+        });
+    }
+
+    roomTypeSelect.addEventListener('change', checkAvailability);
+    startDateInput.addEventListener('change', checkAvailability);
+    endDateInput.addEventListener('change', checkAvailability);
+});
+</script>
+
+<style>
+.alert-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>
 @endsection

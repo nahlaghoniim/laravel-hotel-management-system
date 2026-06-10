@@ -17,13 +17,15 @@ class BookingSeeder extends Seeder
 
         $bookings = [];
         // create 25 bookings spread across the month with mixed status
+        $typeIds = DB::table('room_types')->pluck('id')->toArray();
+        $roomIds = DB::table('rooms')->pluck('id')->toArray();
         for ($i = 0; $i < 25; $i++) {
             $start = $today->copy()->addDays(rand(-10, 20));
             $end = (clone $start)->addDays(rand(1,4));
             $status = rand(0,10) < 2 ? 'cancelled' : (rand(0,10) < 4 ? 'checked_in' : (rand(0,10) < 6 ? 'checked_out' : 'reserved'));
             $payment = $status === 'cancelled' ? 'refunded' : (rand(0,10) < 6 ? 'paid' : 'pending');
-            $roomTypeId = rand(1,6);
-            $roomId = (rand(0,1) ? rand(1,13) : null);
+            $roomTypeId = empty($typeIds) ? null : $typeIds[array_rand($typeIds)];
+            $roomId = (rand(0,1) && !empty($roomIds)) ? $roomIds[array_rand($roomIds)] : null;
 
             $bookings[] = [
                 'customer_id' => rand(1,10),

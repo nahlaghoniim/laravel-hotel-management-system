@@ -98,14 +98,16 @@ class DatabaseSeeder extends Seeder
         DB::table('bookings')->delete();
 
         $today = \Carbon\Carbon::today();
+        $typeIds = DB::table('room_types')->pluck('id')->toArray();
+        $roomIds = DB::table('rooms')->pluck('id')->toArray();
         $bookings = [];
         for ($i = 0; $i < 25; $i++) {
             $start = $today->copy()->addDays(rand(-10, 20));
             $end = (clone $start)->addDays(rand(1,4));
             $status = rand(0,10) < 2 ? 'cancelled' : (rand(0,10) < 4 ? 'checked_in' : (rand(0,10) < 6 ? 'checked_out' : 'reserved'));
             $payment = $status === 'cancelled' ? 'refunded' : (rand(0,10) < 6 ? 'paid' : 'pending');
-            $roomTypeId = rand(1,6);
-            $roomId = (rand(0,1) ? rand(1,13) : null);
+            $roomTypeId = empty($typeIds) ? null : $typeIds[array_rand($typeIds)];
+            $roomId = (rand(0,1) && !empty($roomIds)) ? $roomIds[array_rand($roomIds)] : null;
 
             $bookings[] = [
                 'customer_id' => rand(1,10),
@@ -132,10 +134,16 @@ class DatabaseSeeder extends Seeder
         // Create check_ins for current checked_in bookings
         DB::table('check_ins')->delete();
         $checked = DB::table('bookings')->where('status','checked_in')->get();
+        $roomIds = DB::table('rooms')->pluck('id')->toArray();
         foreach ($checked as $b) {
+            $roomId = $b->room_id;
+            if (empty($roomId) || !in_array($roomId, $roomIds)) {
+                $roomId = !empty($roomIds) ? $roomIds[array_rand($roomIds)] : null;
+            }
+
             DB::table('check_ins')->insert([
                 'booking_id' => $b->id,
-                'room_id' => $b->room_id ?? 1,
+                'room_id' => $roomId,
                 'staff_id' => 1,
                 'checked_in_at' => $b->start_date . ' 14:00:00',
                 'checked_out_at' => $b->end_date . ' 12:00:00',
@@ -145,5 +153,8 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => now(),
             ]);
         }
+
+        // ── Admin User ───────────────────────────────────────────
+        $this->call(AdminSeeder::class);
     }
 }

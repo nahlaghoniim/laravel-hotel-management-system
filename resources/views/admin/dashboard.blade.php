@@ -4,7 +4,243 @@
 
 @section('extra_css')
 <link href="{{ asset('vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<style>
+    /* Dashboard improvements */
+    .dash-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+    }
 
+    .chart-wrap {
+        position: relative;
+        height: 350px;
+        margin: 0 -1rem -1rem -1rem;
+        padding: 0;
+        background: transparent;
+    }
+
+    .chart-wrap-sm {
+        height: 280px;
+    }
+
+    .panel {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid rgba(201, 168, 76, 0.12);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .panel:hover {
+        box-shadow: 0 4px 16px rgba(201, 168, 76, 0.1);
+        border-color: rgba(201, 168, 76, 0.2);
+    }
+
+    .panel-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem;
+        background: linear-gradient(135deg, rgba(201, 168, 76, 0.04) 0%, rgba(61, 42, 12, 0.02) 100%);
+        border-bottom: 1px solid rgba(201, 168, 76, 0.1);
+    }
+
+    .panel-body {
+        padding: 1.5rem;
+    }
+
+    .panel-body.chart-with-legend {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+
+    .pie-legend {
+        flex: 0 0 200px;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        font-size: 0.9rem;
+        color: #5a4a3a;
+    }
+
+    .legend-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+
+    .section-label {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .section-label:first-of-type {
+        margin-top: 0;
+    }
+
+    .section-label-text {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #3d2a0c;
+        white-space: nowrap;
+    }
+
+    .section-label-line {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(201, 168, 76, 0.3) 0%, transparent 100%);
+    }
+
+    .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .kpi-card {
+        background: #fff;
+        border: 1px solid rgba(201, 168, 76, 0.12);
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+    }
+
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(201, 168, 76, 0.1);
+        border-color: rgba(201, 168, 76, 0.2);
+    }
+
+    .content-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .content-row.row-3 {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    }
+
+    /* Improve alert-strip styling */
+    .alert-strip {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .alert-chip {
+        background: #fff;
+        border: 1px solid rgba(201, 168, 76, 0.12);
+        border-radius: 8px;
+        padding: 1rem 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+        min-width: 200px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s ease;
+    }
+
+    .alert-chip:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .alert-chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .alert-chip-dot.info { background-color: #17a2b8; }
+    .alert-chip-dot.warning { background-color: #ffc107; }
+    .alert-chip-dot.danger { background-color: #dc3545; }
+    .alert-chip-dot.neutral { background-color: #6c757d; }
+
+    /* Quick pills styling */
+    .quick-grid {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-pill {
+        background: linear-gradient(135deg, #c9a84c 0%, #a07820 100%);
+        color: #fff;
+        padding: 0.75rem 1.25rem;
+        border-radius: 20px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(201, 168, 76, 0.25);
+    }
+
+    .quick-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(201, 168, 76, 0.35);
+        color: #fff;
+        text-decoration: none;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+        .kpi-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .content-row {
+            grid-template-columns: 1fr;
+        }
+
+        .content-row.row-3 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .kpi-grid, .content-row, .content-row.row-3 {
+            grid-template-columns: 1fr;
+        }
+
+        .panel-body.chart-with-legend {
+            flex-direction: column;
+        }
+
+        .pie-legend {
+            flex: 1;
+            width: 100%;
+        }
+
+        .chart-wrap {
+            height: 250px;
+        }
+
+        .dash-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
@@ -13,8 +249,16 @@
 <div class="dash-header">
     <div class="dash-header-left">
         <span class="dash-eyebrow">Management Portal</span>
-        <div class="dash-title">Good {{ date('H') < 12 ? 'morning' : (date('H') < 18 ? 'afternoon' : 'evening') }}, {{ explode(' ', Auth::guard('admin')->user()->name ?? 'Admin')[0] }}</div>
-        <div class="dash-subtitle">Here's what's happening at Grand Horizon today</div>
+@php
+    $hour = (int) now()->format('H');
+    $greeting = match(true) {
+        $hour >= 5  && $hour < 12 => 'Good Morning',
+        $hour >= 12 && $hour < 17 => 'Good Afternoon',
+        $hour >= 17 && $hour < 21 => 'Good Evening',
+        default                   => 'Good Night',
+    };
+@endphp
+<div class="dash-title">{{ $greeting }}, {{ explode(' ', Auth::guard('admin')->user()->name ?? 'Admin')[0] }}</div>        <div class="dash-subtitle">Here's what's happening at Grand Horizon today</div>
     </div>
     <a href="{{ route('admin.dashboard.report') }}" class="btn-gold">
         <i class="fas fa-download" style="font-size:10px"></i>
@@ -643,124 +887,163 @@
 @endsection
 
 @section('extra_js')
-<script src="{{ asset('vendor/chart.js/Chart.min.js') }}"></script>
 <script>
-// ── Shared chart defaults ──
-Chart.defaults.global.defaultFontFamily = "'DM Sans', sans-serif";
-Chart.defaults.global.defaultFontColor  = '#888070';
-
-const gridColor  = 'rgba(201,168,76,0.08)';
-const gold       = '#c9a84c';
-const inkDark    = '#3d2a0c';
-
-// ── Revenue Line Chart ──
-new Chart(document.getElementById('revenueChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
-        datasets: [{
-            label: 'Revenue',
-            data: {!! json_encode($monthlyRevenue ?? array_fill(0,12,0)) !!},
-            borderColor: gold,
-            backgroundColor: 'rgba(201,168,76,0.07)',
-            borderWidth: 2,
-            pointBackgroundColor: gold,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            tension: 0.4,
-            fill: true
-        }]
-    },
-    options: {
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Chart Configuration ──
+    const gold = '#c9a84c';
+    const inkDark = '#3d2a0c';
+    const gridColor = 'rgba(201,168,76,0.1)';
+    
+    const chartOptions = {
         responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            xAxes: [{ gridLines: { display: false }, ticks: { fontSize: 11 } }],
-            yAxes: [{ gridLines: { color: gridColor }, ticks: { fontSize: 11, callback: v => '$' + v.toLocaleString() } }]
+        maintainAspectRatio: true,
+        plugins: {
+            legend: { display: false }
         }
+    };
+
+    // ── Revenue Line Chart ──
+    if (document.getElementById('revenueChart')) {
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+                datasets: [{
+                    label: 'Revenue',
+                    data: {!! json_encode($monthlyRevenue ?? array_fill(0,12,0)) !!},
+                    borderColor: gold,
+                    backgroundColor: 'rgba(201,168,76,0.08)',
+                    borderWidth: 2,
+                    pointBackgroundColor: gold,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: { 
+                        grid: { color: gridColor },
+                        ticks: { 
+                            font: { size: 11 },
+                            callback: function(v) { return '$' + v.toLocaleString(); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Occupancy Trend ──
+    if (document.getElementById('occupancyChart')) {
+        new Chart(document.getElementById('occupancyChart'), {
+            type: 'line',
+            data: {
+                labels: {!! json_encode($occupancyTrendLabels ?? []) !!},
+                datasets: [{
+                    label: 'Active Rooms',
+                    data: {!! json_encode($occupancyTrendData ?? []) !!},
+                    borderColor: inkDark,
+                    backgroundColor: 'rgba(61,42,12,0.08)',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                    pointBackgroundColor: inkDark,
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    tension: 0.35,
+                    fill: true
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        ticks: { font: { size: 11 } }
+                    },
+                    y: { 
+                        grid: { color: gridColor },
+                        ticks: { font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // ── Doughnut chart options ──
+    const doughnutOptions = {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } }
+    };
+
+    const palette1 = ['#c9a84c','#3d2a0c','#e8c97a','#d4b35a','#b7882e'];
+    const palette2 = ['#c9a84c','#3d2a0c','#e8c97a','#b7882e','#a07820'];
+    const palette3 = ['#4caf50','#c9a84c','#3d2a0c','#ff8c42','#6c757d','#d9534f'];
+
+    // ── Revenue by Room Type ──
+    if (document.getElementById('sourceChart')) {
+        new Chart(document.getElementById('sourceChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($roomTypeLabels ?? []) !!},
+                datasets: [{
+                    data: {!! json_encode($roomTypeData ?? []) !!},
+                    backgroundColor: palette1,
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: doughnutOptions
+        });
+    }
+
+    // ── Booking Status ──
+    if (document.getElementById('statusChart')) {
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($statusLabels ?? []) !!},
+                datasets: [{
+                    data: {!! json_encode($statusData ?? []) !!},
+                    backgroundColor: palette2,
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: doughnutOptions
+        });
+    }
+
+    // ── Room Status ──
+    if (document.getElementById('roomStatusChart')) {
+        new Chart(document.getElementById('roomStatusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: {!! json_encode($roomStatusLabels ?? []) !!},
+                datasets: [{
+                    data: {!! json_encode($roomStatusData ?? []) !!},
+                    backgroundColor: palette3,
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: doughnutOptions
+        });
     }
 });
 
-// ── Occupancy Trend ──
-new Chart(document.getElementById('occupancyChart').getContext('2d'), {
-    type: 'line',
-    data: {
-        labels: {!! json_encode($occupancyTrendLabels ?? []) !!},
-        datasets: [{
-            label: 'Active Rooms',
-            data: {!! json_encode($occupancyTrendData ?? []) !!},
-            borderColor: inkDark,
-            backgroundColor: 'rgba(61,42,12,0.07)',
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: inkDark,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            tension: 0.35,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-            xAxes: [{ gridLines: { display: false }, ticks: { fontSize: 11 } }],
-            yAxes: [{ gridLines: { color: gridColor }, ticks: { fontSize: 11 } }]
-        }
-    }
-});
-
-// ── Shared doughnut options ──
-const doughnutOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutoutPercentage: 74,
-    plugins: { legend: { display: false } },
-    animation: { animateRotate: true, animateScale: true }
-};
-
-const palette1 = ['#c9a84c','#3d2a0c','#e8c97a','#d4b35a','#b7882e'];
-const palette2 = ['#c9a84c','#3d2a0c','#e8c97a','#b7882e','#a07820'];
-const palette3 = ['#4caf50','#c9a84c','#3d2a0c','#ff8c42','#6c757d','#d9534f'];
-
-// Revenue by Room Type
-new Chart(document.getElementById('sourceChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($roomTypeLabels ?? []) !!},
-        datasets: [{ data: {!! json_encode($roomTypeData ?? []) !!}, backgroundColor: palette1, borderWidth: 0, hoverOffset: 8 }]
-    },
-    options: doughnutOpts
-});
-
-// Booking Status
-new Chart(document.getElementById('statusChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($statusLabels ?? []) !!},
-        datasets: [{ data: {!! json_encode($statusData ?? []) !!}, backgroundColor: palette2, borderWidth: 0, hoverOffset: 8 }]
-    },
-    options: doughnutOpts
-});
-
-// Room Status
-new Chart(document.getElementById('roomStatusChart').getContext('2d'), {
-    type: 'doughnut',
-    data: {
-        labels: {!! json_encode($roomStatusLabels ?? []) !!},
-        datasets: [{ data: {!! json_encode($roomStatusData ?? []) !!}, backgroundColor: palette3, borderWidth: 0, hoverOffset: 8 }]
-    },
-    options: doughnutOpts
-});
-
-// ── Custom range toggle ──
+// ── Toggle custom range ──
 function toggleCustomRange(value) {
-    document.getElementById('custom-range-group').style.display =
-        value === 'custom' ? 'flex' : 'none';
+    document.getElementById('custom-range-group').style.display = value === 'custom' ? 'flex' : 'none';
 }
 </script>
 @endsection

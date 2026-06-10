@@ -9,11 +9,16 @@ use Illuminate\Support\Facades\Storage;
 
 class StaffController extends Controller
 {
-    public function index()
-    {
-        $staff = Staff::with('department')->latest()->get();
-        return view('admin.staff.index', compact('staff'));
-    }
+   public function index()
+{
+    $staff = Staff::with(['department', 'payments'])->latest()->get();
+
+    $totalPaidThisMonth = \App\Models\StaffPayment::paid()
+        ->forMonth(now()->year, now()->month)
+        ->sum('amount');
+
+    return view('admin.staff.index', compact('staff', 'totalPaidThisMonth'));
+}
 
     public function create()
     {

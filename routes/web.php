@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\BookingController;
 use App\Http\Controllers\Admin\CheckInController;
 use App\Http\Controllers\Admin\SearchController;
 use App\Http\Controllers\Admin\AccountController;
+use App\Http\Controllers\Admin\HomeController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,8 +21,8 @@ use App\Http\Controllers\Admin\AccountController;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('home');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
